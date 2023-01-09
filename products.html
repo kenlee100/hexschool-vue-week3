@@ -12,7 +12,6 @@
 </head>
 
 <body>
-  <!-- https://images.pexels.com/photos/2339009/pexels-photo-2339009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2 -->
   <div id="app">
     <div class="container">
       <div class="text-end mt-4">
@@ -267,10 +266,6 @@
               // 顯示失敗資訊
               alert(err.data.message);
             });
-        },
-        // 將要刪除的商品資料傳入 delProductModal
-        deleteModal(item) {
-          this.temp = JSON.parse(JSON.stringify(item));
         },
         // 關閉彈窗
         closeModal(target) {

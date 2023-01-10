@@ -105,7 +105,7 @@
                       <input
                         type="text"
                         class="form-control"
-                        placeholder="請輸入圖片連結"
+                        placeholder="請輸入主要圖片連結"
                         v-model="temp.imageUrl"
                       />
                       <div class="input-group">
@@ -117,7 +117,17 @@
                           ref="main-file"
                         />
                       </div>
-                      <img class="img-fluid" :src="temp.imageUrl" alt="" />
+                      <img
+                        v-if="temp.imageUrl"
+                        class="img-fluid"
+                        :src="temp.imageUrl"
+                        alt=""
+                      />
+                      <img
+                        v-else
+                        src="https://placehold.co/640x480?text=No+Photo"
+                        alt=""
+                      />
                     </div>
                   </div>
                   <div class="mb-3">
@@ -128,21 +138,26 @@
                       新增其他圖片欄位
                     </button>
                   </div>
-                  <div class="d-flex flex-column overflow-auto">
-                    <template v-for="(item,index) in temp.imagesUrl">
+                  <div
+                    class="d-flex flex-column overflow-auto"
+                    v-if="temp.imagesUrl"
+                  >
+                    <template
+                      v-for="(item,index) in temp.imagesUrl"
+                      :key="item.id"
+                    >
                       <div class="py-3 border-bottom">
-                        <label class="form-label">圖片 {{ index+1 }}</label>
+                        <label class="form-label">圖片 {{ item.num }}</label>
                         <div class="form-group">
                           <!-- 輸入圖片網址 -->
                           <input
                             type="text"
                             class="form-control"
-                            placeholder="請輸入圖片連結"
-                            v-model="temp.imagesUrl[index]"
+                            :placeholder="`請輸入圖片${item.num}連結`"
+                            v-model="temp.imagesUrl[index].imageUrl"
                           />
                           <!-- 上傳圖片 -->
                           <input
-                            v-if="temp.imagesUrl.length>=1"
                             type="file"
                             class="form-control"
                             :name="`file-upload-${index+1}`"
@@ -150,14 +165,25 @@
                             @change="uploadFile(`ref-file-${index+1}`)"
                             :data-num="index"
                           />
-                          <img class="img-fluid" :src="item" alt="" />
+                          <img
+                            v-if="item.imageUrl"
+                            class="img-fluid"
+                            :src="item.imageUrl"
+                            alt=""
+                          />
+                          <img
+                            v-else
+                            class="img-fluid"
+                            src="https://placehold.co/640x480?text=No+Photo"
+                            alt=""
+                          />
                         </div>
                         <div>
                           <button
                             class="btn btn-outline-danger btn-sm d-block w-100"
-                            @click="deleteImage(index)"
+                            @click="deleteImage(item)"
                           >
-                            刪除圖片 {{ index+1 }}
+                            刪除圖片 {{ item.num }}
                           </button>
                         </div>
                       </div>
@@ -411,31 +437,50 @@
           closeModal(target) {
             target.hide();
             // 關閉彈窗後清除 temp
-            // this.temp = { imagesUrl: [] };
+            this.temp = { imagesUrl: [] };
           },
 
           openModal(productMethod, item) {
             if (productMethod === "new") {
               this.temp = { imagesUrl: [] };
             } else if (productMethod === "edit" || productMethod === "delete") {
-              this.temp = { ...item };
+              this.temp = JSON.parse(JSON.stringify(item));
             }
           },
           // 建立圖片欄位
           createImage() {
+            // 計算圖片數量
+            let count = null;
+
             // 有 imagesUrl 時
-            // 新增一筆陣列空字串
             if (this.temp.imagesUrl) {
-              this.temp.imagesUrl.push("");
+              // 將 temp.imagesUrl 圖片數量賦予到count
+              count = this.temp.imagesUrl.length;
+            }
+
+            const imageObj = {
+              // timestamp,  計算目前數量
+              id: new Date().getTime(),
+              num: (count += 1),
+            };
+
+            // 有 imagesUrl 時
+            if (this.temp.imagesUrl) {
+              // 新增一筆物件
+              this.temp.imagesUrl.push(imageObj);
             } else {
-              // 沒有 imagesUrl 時 新增 imagesUrl 陣列 + 新增一筆空字串
+              // 沒有 imagesUrl 時 新增 imagesUrl 陣列 + 新增一筆物件
               this.temp.imagesUrl = [];
-              this.temp.imagesUrl.push("");
+              this.temp.imagesUrl.push(imageObj);
             }
           },
           // 移除圖片
-          deleteImage(index) {
-            this.temp.imagesUrl.splice(index, 1);
+          deleteImage(data) {
+            this.temp.imagesUrl.forEach((item, index) => {
+              if (item.id === data.id) {
+                this.temp.imagesUrl.splice(index, 1);
+              }
+            });
           },
           uploadFile(refItem) {
             const formData = new FormData();
@@ -446,6 +491,7 @@
               axios
                 .post(`${this.url}/api/${this.path}/admin/upload/`, formData)
                 .then((res) => {
+                  console.log(res);
                   this.temp.imageUrl = res.data.imageUrl;
                 })
                 .catch((err) => {
@@ -459,7 +505,7 @@
               axios
                 .post(`${this.url}/api/${this.path}/admin/upload/`, formData)
                 .then((res) => {
-                  this.temp.imagesUrl[i] = res.data.imageUrl;
+                  this.temp.imagesUrl[i].imageUrl = res.data.imageUrl;
                 })
                 .catch((err) => {
                   alert(err.data.message);

@@ -163,7 +163,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
-              @click="closeModal('productModal')">
+              @click="closeModal(productModal)">
               取消
             </button>
             <button type="button" class="btn btn-primary" @click="updateProduct">
@@ -214,11 +214,14 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script type="module">
     import config from "./js/config.js";
+
     Vue.createApp({
       data() {
         return {
           ...config,
           products: [],
+          productModal: null,
+          delProductModal: null,
           // 初始商品資料
           temp: {
             imagesUrl: [],
@@ -260,7 +263,7 @@
               // 顯示成功資訊
               this.getProductAll();
               alert(res.data.message);
-              this.closeModal("delProductModal");
+              this.closeModal(this.delProductModal);
             })
             .catch((err) => {
               // 顯示失敗資訊
@@ -269,9 +272,7 @@
         },
         // 關閉彈窗
         closeModal(target) {
-          const modalToggle = bootstrap.Modal.getInstance(this.$refs[target]);
-          modalToggle.hide();
-
+          target.hide()
           // 關閉彈窗後清除 temp
           this.temp = { imagesUrl: [] };
         },
@@ -340,7 +341,7 @@
                 this.getProductAll();
                 alert(res.data.message);
 
-                this.closeModal("productModal");
+                this.closeModal(this.productModal);
               })
               .catch((err) => {
                 alert(err.data.message);
@@ -357,7 +358,7 @@
                 // 顯示成功資訊
                 alert(res.data.message);
                 this.getProductAll();
-                this.closeModal("productModal");
+                this.closeModal(this.productModal);
               })
               .catch((err) => {
                 // 顯示失敗資訊
@@ -389,6 +390,12 @@
         );
         axios.defaults.headers.common["Authorization"] = token;
         this.checkLogin();
+
+        // 建立彈窗
+        this.productModal = new bootstrap.Modal(this.$refs.productModal)
+        this.delProductModal = new bootstrap.Modal(this.$refs.delProductModal)
+
+
       },
     }).mount("#app");
   </script>

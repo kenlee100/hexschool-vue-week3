@@ -491,7 +491,6 @@
               axios
                 .post(`${this.url}/api/${this.path}/admin/upload/`, formData)
                 .then((res) => {
-                  console.log(res);
                   this.temp.imageUrl = res.data.imageUrl;
                 })
                 .catch((err) => {
